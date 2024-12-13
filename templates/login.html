@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Voltaica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-full bg-sky-50 flex flex-col">
+
+    <!-- Header Section -->
+    <header class="w-full bg-sky-950 py-4 shadow-md">
+        <div class="max-w-5xl mx-auto flex items-center justify-center">
+            <h1 class="text-2xl font-bold leading-9 text-white"><a href="{{ url_for('dashboard') }}">Voltaica</a></h1>
+        </div>
+    </header>
+
+    <!-- Main Content Section for Login -->
+    <div class="flex-grow flex items-center justify-center px-6 py-12">
+        <div class="sm:mx-auto sm:w-full sm:max-w-sm bg-white rounded-lg shadow-md p-6">
+            <h2 class="mb-5 text-center text-2xl font-bold text-gray-900">Se connecter à votre compte</h2>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="mb-4">
+                        {% for category, message in messages %}
+                            <li class="text-red-500">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <form class="space-y-4" method="POST" action="/login">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-900">Username <span class="text-red-500">*</span></label>
+                    <input id="username" name="username" type="username" required placeholder="Entrez votre username" class="block w-full px-3 py-2.5 rounded-md shadow-sm ring-1 ring-gray-300 placeholder-gray-400 focus:ring-2 focus:ring-indigo-600">
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-900">Mot de passe <span class="text-red-500">*</span></label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Entrez votre mot de passe" class="block w-full px-3 py-2.5 rounded-md shadow-sm ring-1 ring-gray-300 placeholder-gray-400 focus:ring-2 focus:ring-indigo-600">
+                </div>
+
+                <button type="submit" class="w-full mt-5 rounded-md bg-sky-950 px-3 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 focus:outline-none">Se connecter</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-sky-950 py-4 text-center text-white">
+        <p>© 2024 Voltaica. Tous droits réservés.</p>
+    </footer>
+</body>
+</html>

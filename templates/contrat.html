@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Contrats</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <header class="bg-white shadow">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="h-10">
+            <div class="flex items-center gap-4">
+                <span class="text-gray-700">Bonjour, {{ nom }}</span>
+                <a href="{{ url_for('logout') }}" class="bg-red-600 text-white text-center px-4 py-2 rounded-lg  transition-colors hover:bg-red-500 transition duration-150">Se déconnecter</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-gray-800 text-white">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap justify-center md:justify-start space-x-8 py-3">
+                <a href="{{ url_for('dashboard') }}" class="hover:text-gray-300 py-2">Tableau de bord</a>
+                <a href="{{ url_for('contrat') }}" class="hover:text-gray-300 py-2 border-b-2 border-gray-400">Contrats</a>
+                <a href="{{ url_for('gestion_mlm') }}" class="hover:text-gray-300 py-2">Gestion MLM</a>   
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Filtres -->
+        <form method="get" action="{{ url_for('contrat') }}" class="flex flex-wrap gap-4 mb-6">
+            <input type="text" name="client" value="{{ request.args.get('client', '') }}" placeholder="Rechercher un client..." class="border border-gray-300 rounded-lg px-4 py-2">
+            <select name="etat" class="border border-gray-300 rounded-lg px-4 py-2">
+                <option value="">État du contrat</option>
+                <option value="Payé" {% if request.args.get('etat') == 'Payé' %}selected{% endif %}>Payé</option>
+                <option value="En attente de validation" {% if request.args.get('etat') == 'En attente de validation' %}selected{% endif %}>En attente de validation</option>
+                <option value="Abandon" {% if request.args.get('etat') == 'Abandon' %}selected{% endif %}>Abandon</option>
+            </select>
+            <input type="date" name="date_debut" value="{{ request.args.get('date_debut') }}" class="border border-gray-300 rounded-lg px-4 py-2">
+            <input type="date" name="date_fin" value="{{ request.args.get('date_fin') }}" class="border border-gray-300 rounded-lg px-4 py-2">
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">Filtrer</button>
+        </form>
+
+        <!-- Table des contrats -->
+        <div class="bg-white shadow rounded-lg overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Numéro</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ville</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puissance</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commission</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date PDB</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date de complétude</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for contrat in contrats %}
+                    <tr>
+                        <td class="px-6 py-4">{{ contrat['numero_dossier'] }}</td>
+                        <td class="px-6 py-4">{{ contrat['nom_client'] }}</td>
+                        <td class="px-6 py-4">{{ contrat['ville'] }}</td>
+                        <td class="px-6 py-4">{{ contrat['puissance'] }}</td>
+                        <td class="px-6 py-4">{{ contrat['commission'] }}</td>
+                        <td class="px-6 py-4">{{ contrat['datePDB'] }}</td>
+                        <td class="px-6 py-4">{{ contrat['dateCompletude'] }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded 
+                                {% if contrat['statut'] == 'Payé' %}
+                                    bg-green-200 text-green-700
+                                {% elif contrat['statut'] == 'En attente de validation' %}
+                                    bg-yellow-200 text-yellow-700
+                                {% else %}
+                                    bg-red-200 text-red-700
+                                {% endif %}
+                            ">
+                                {{ contrat['statut'] }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 flex gap-2">
+                            <a href="#" class="text-blue-600 hover:text-blue-800">Modifier</a>
+                            <a href="#" class="text-red-600 hover:text-red-800">Supprimer</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>                
+            </table>
+        </div>
+    </main>
+</body>
+</html>

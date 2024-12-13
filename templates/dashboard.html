@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - VOLTAÏCA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="h-10">
+            <div class="flex items-center gap-4">
+                <span class="text-gray-700">Bonjour, {{ nom }}</span>
+                <a href="{{ url_for('logout') }}" class="bg-red-600 text-white text-center px-4 py-2 rounded-lg transition-colors hover:bg-red-500 transition duration-150">Se déconnecter</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-gray-800 text-white">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap justify-center md:justify-start space-x-8 py-3">
+                <a href="{{ url_for('dashboard') }}" class="hover:text-gray-300 py-2 border-b-2 border-gray-400">Tableau de bord</a>
+                <a href="{{ url_for('contrat') }}" class="hover:text-gray-300 py-2">Contrats</a>
+                <a href="{{ url_for('gestion_mlm') }}" class="hover:text-gray-300 py-2">Gestion MLM</a>   
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 space-y-8">
+
+        <!-- Sélection de l'année -->
+        <!-- Sélection de l'année -->
+        <section class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Sélectionner l'année</h2>
+            <select id="annee" class="form-select bg-gray-100 border border-gray-300 rounded p-2 mb-4">
+                <option value="2024" {% if annee == 2024 %}selected{% endif %}>2024</option>
+                <option value="2023" {% if annee == 2023 %}selected{% endif %}>2023</option>
+            </select>
+            <!-- Bouton pour appliquer la sélection -->
+            <button id="submitYear" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-150">Appliquer l'année</button>
+        </section>
+
+        <!-- Section Prévisionnel -->
+        <section class="bg-blue-50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">Prévisionnel</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <h3 class="text-lg font-semibold text-gray-600">Montant des contrats</h3>
+                    <p id="previsionnel_contrats" class="text-2xl font-bold text-blue-600">{{ result.montant_contrats_previsionnel }} €</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <h3 class="text-lg font-semibold text-gray-600">Montant du MLM</h3>
+                    <p id="previsionnel_mlm" class="text-2xl font-bold text-blue-600">{{ result.montant_mlm }} €</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <h3 class="text-lg font-semibold text-gray-600">Total prévisionnel</h3>
+                    <p id="total_previsionnel" class="text-2xl font-bold text-blue-600">{{ result.montant_contrats_previsionnel or 0 + result.montant_mlm or 0}} €</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Réel -->
+        <section class="bg-green-50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold text-green-600 mb-4">Réel</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <h3 class="text-lg font-semibold text-gray-600">Montant des contrats</h3>
+                    <p id="reel_contrats" class="text-2xl font-bold text-green-600">{{ result.montant_contrats_paye }} €</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <h3 class="text-lg font-semibold text-gray-600">Montant du MLM</h3>
+                    <p id="reel_mlm" class="text-2xl font-bold text-green-600">{{ result.montant_mlm }} €</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <h3 class="text-lg font-semibold text-gray-600">Total réel</h3>
+                    <p id="total_reel" class="text-2xl font-bold text-green-600">{{ result.montant_contrats_paye + result.montant_mlm }} €</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Graphique de performance</h2>
+            <canvas id="stackedBarChart"></canvas>
+        </section>
+        
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const ctx = document.getElementById('stackedBarChart').getContext('2d');
+                const data = {
+                    labels: {{ result.mois }},
+                    datasets: [
+                        {
+                            label: 'Prévisionnel',
+                            data: {{ result.prévisionnel }},
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)', // Couleur distincte (bleu)
+                        },
+                        {
+                            label: 'Réel',
+                            data: {{ result.payé }},
+                            backgroundColor: 'rgba(255, 159, 64, 0.7)', // Couleur distincte (orange)
+                        },
+                    ],
+                };
+                const options = {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Mois', // Titre de l'axe X
+                            },
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Montant (€)', // Titre de l'axe Y
+                            },
+                        },
+                    },
+                };
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: data,
+                    options: options,
+                });
+            });
+
+            // Gérer l'événement sur le bouton
+            document.getElementById('submitYear').addEventListener('click', function () {
+                const selectedYear = document.getElementById('annee').value;
+                window.location.href = `/dashboard?annee=${selectedYear}`;
+            });
+            
+        </script>
+
+    </main>
+
+</body>
+</html>
