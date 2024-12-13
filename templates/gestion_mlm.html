@@ -55,20 +55,6 @@
     </nav>
 
     <main class="container mx-auto px-4 py-8">
-        <!-- Controls -->
-        <div class="mb-8 flex flex-wrap gap-4 items-center justify-between">
-            <div class="flex items-center gap-4">
-                <form method="GET" action="{{ url_for('gestion_mlm') }}" class="flex gap-4">
-                    <input type="text" name="search" id="search" placeholder="Rechercher un chargé d'affaire..." 
-                           class="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           value="{{ request.args.get('search', '') }}">
-                    <button type="submit" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                        Rechercher
-                    </button>
-                </form>
-            </div>
-        </div>
-    
         <!-- Table  -->
         <div class="flex flex-wrap lg:flex-nowrap gap-4">
             <!-- Table -->
@@ -78,11 +64,12 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable cursor-pointer" onclick="sortTable()">Commission reçue (€)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Téléphone</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code Postal</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Numéro Dossier</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant à Récupérer (€)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date de Paiement (PDB + 6 mois)</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -94,51 +81,30 @@
                                          class="rounded-full" width="40" height="40">
                                 </td>
                                 <td class="px-6 py-4">{{ charge.nom }}</td>
-                                <td class="px-6 py-4">{{ charge.commission_mlm or 'N/A' }}</td>
-                                <td class="px-6 py-4">{{ charge.grade }}</td>
                                 <td class="px-6 py-4">{{ charge.email }}</td>
                                 <td class="px-6 py-4">{{ charge.telephone }}</td>
                                 <td class="px-6 py-4">{{ charge.codePostal }}</td>
+                                <td class="px-6 py-4">
+                                    {% for dossier in charge.dossiers %}
+                                        <p>{{ dossier.numero_dossier }}</p>
+                                    {% endfor %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% for dossier in charge.dossiers %}
+                                        <p>{{ dossier.montant_a_recuperer }}</p>
+                                    {% endfor %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% for dossier in charge.dossiers %}
+                                        <p>{{ dossier.date_paiement }}</p>
+                                    {% endfor %}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                
             </div>
         </div>
-        <script>
-            function sortTable() {
-    const table = document.getElementById("mlmTable");
-    const rows = Array.from(table.querySelectorAll("tbody tr"));
-    const headerCell = table.querySelector("th:nth-child(3)"); // La colonne "Commission reçue (€)"
-    const isSortedAscending = headerCell.classList.contains("sorted-asc");
-
-    // Enlever les classes de tri précédentes
-    table.querySelectorAll("th").forEach(th => {
-        th.classList.remove("sorted-asc", "sorted-desc");
-    });
-
-    // Trier les lignes en fonction de la commission
-    rows.sort((rowA, rowB) => {
-        const commissionA = parseFloat(rowA.cells[2].innerText.replace('€', '').trim()) || 0;
-        const commissionB = parseFloat(rowB.cells[2].innerText.replace('€', '').trim()) || 0;
-
-        return isSortedAscending ? commissionB - commissionA : commissionA - commissionB;
-    });
-
-    // Réorganiser les lignes dans la table
-    rows.forEach(row => table.querySelector("tbody").appendChild(row));
-
-    // Ajouter l'indicateur de tri approprié
-    if (isSortedAscending) {
-        headerCell.classList.add("sorted-desc");
-    } else {
-        headerCell.classList.add("sorted-asc");
-    }
-}
-
-        </script>
-
     </main>
 
 </body>

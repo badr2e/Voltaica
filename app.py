@@ -4,6 +4,8 @@ import MySQLdb.cursors
 import os
 from dotenv import load_dotenv
 import json
+from datetime import timedelta
+
 
 load_dotenv()
 
@@ -208,23 +210,34 @@ def gestion_mlm():
     # Récupérer les données des chargés d'affaire supervisés par l'utilisateur avec commissions totales
     cursor.execute("""
         SELECT 
-            ca.nom, 
-            ca.email, 
-            ca.telephone, 
-            ca.codePostal, 
-            ca.grade, 
-            ca.photo, 
-            SUM(d.commission) AS total_commission,
-            SUM(d.commission) * 0.1 AS commission_mlm,
+            ca.id, ca.nom, ca.email, ca.telephone, ca.codePostal, ca.grade, ca.photo,
             manager.nom AS nom_manager 
         FROM charge_affaire ca
-        LEFT JOIN dossier d ON d.id_chaff = ca.id AND d.statut = 'Payé'
         LEFT JOIN charge_affaire manager ON ca.encadrePar = manager.id
         WHERE ca.encadrePar = %s
-        GROUP BY ca.id
         ORDER BY ca.nom ASC
     """, (user_id,))
     charges_affaire = cursor.fetchall()
+
+    for charge in charges_affaire:
+        # Récupérer les dossiers associés avec statut "Payé"
+        cursor.execute("""
+            SELECT 
+                d.numero_dossier, d.commission, d.datePDB
+            FROM dossier d
+            WHERE d.id_chaff = %s AND d.statut = 'Payé'
+        """, (charge['id'],))
+        dossiers = cursor.fetchall()
+
+        # Ajouter les dossiers à chaque chargé d'affaire
+        charge['dossiers'] = []
+        for dossier in dossiers:
+            date_paiement = dossier['datePDB'] + timedelta(days=180)  # Date PDB + 6 mois
+            charge['dossiers'].append({
+                'numero_dossier': dossier['numero_dossier'],
+                'montant_a_recuperer': dossier['commission'],
+                'date_paiement': date_paiement.strftime('%d-%m-%Y')
+            })
 
     return render_template(
         'gestion_mlm.html', 
@@ -232,8 +245,6 @@ def gestion_mlm():
         nom=session['nom'], 
         grade=session['grade']
     )
-
-
 
 
 
